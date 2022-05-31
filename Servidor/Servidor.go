@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 //Aquí se guardan todas las conexiones, mensajes en arrays
@@ -19,6 +22,18 @@ var (
 	msgCh        = make(chan string)
 )
 
+func baseDeDatos() (conexionDB *sql.DB) {
+	driver := "mysql"
+	user := "root"
+	pass := ""
+	dbName := "servidordatos"
+	conexionDB, err := sql.Open(driver, user+":"+pass+"@tcp(127.0.0.1)/"+dbName)
+	if err != nil {
+		panic(err.Error())
+	}
+	return conexionDB
+}
+
 //Este método se encarga de cargar los mensajes que llegan del cliente
 func cargarMensaje(conn net.Conn) {
 	for {
@@ -27,7 +42,7 @@ func cargarMensaje(conn net.Conn) {
 		if err != nil {
 			break
 		}
-		if e == false {
+		if !e {
 			arrayMSG := strings.Split(string(b[:mensaje]), ":")
 			//Determina el canal del mensaje
 			canalUltimo = arrayMSG[1]
@@ -37,6 +52,7 @@ func cargarMensaje(conn net.Conn) {
 		} else {
 			var tamaño float32 = float32(len(b[:mensaje])) / 1024
 			fmt.Println(tamaño)
+			insertarDatos(canalUltimo, nombreUltimo, tamaño)
 			e = false
 		}
 		msg := string(b[:mensaje])
@@ -49,20 +65,31 @@ func cargarMensaje(conn net.Conn) {
 }
 
 //Inicia la interface web
-
 func iniciarWebPage() {
+	//http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
+	//Abre la página web php llamada index.php
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
+		http.ServeFile(w, r, "index.php")
 	})
-	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 	http.ListenAndServe(":5556", nil)
+}
+
+func insertarDatos(canal, nombre string, peso float32) {
+	//Aquí se crea la base de datos
+	db := baseDeDatos()
+	//Aquí se crea la tabla de mensajes
+	insert, err := db.Prepare("INSERT INTO datosenviados2(id, canal, nombre, peso) VALUES('','" + canal + "','" + nombre + "','" + fmt.Sprintf("%f", peso) + "')")
+	if err != nil {
+		log.Fatal(err)
+	}
+	insert.Exec()
+	log.Println("Base de datos creada")
 }
 
 func main() {
 	//Aquí se crea el servidor
 	server, err := net.Listen("tcp", ":5555")
 	go iniciarWebPage()
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,13 +113,11 @@ func main() {
 		case conn := <-connCh:
 			go cargarMensaje(conn)
 			fmt.Println("Cliente conectado")
-			log.Println(len(conns))
-
 		case msg := <-msgCh:
 			_ = msg
 			println("Archivo enviado con éxito")
 		case conn := <-closeCh:
-			fmt.Println("Un cliente salió")
+			fmt.Println("Se desconectó un cliente")
 			removerConn(conn)
 		}
 	}
@@ -116,6 +141,7 @@ func removerConn(conn net.Conn) {
 		if conns[i] == conn {
 			break
 		}
+
 	}
 	conns = append(conns[i:], conns[:i+1]...)
 }
