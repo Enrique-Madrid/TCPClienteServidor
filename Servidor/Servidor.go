@@ -50,7 +50,7 @@ func cargarMensaje(conn net.Conn) {
 			nombreUltimo = arrayMSG[0]
 			e = true
 		} else {
-			var tamaño float32 = float32(len(b[:mensaje])) / 1024
+			var tamaño float32 = float32(len(b[:mensaje])) / 1e+6
 			fmt.Println(tamaño)
 			insertarDatos(canalUltimo, nombreUltimo, tamaño)
 			e = false
