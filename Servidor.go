@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"strings"
 )
 
@@ -47,9 +48,21 @@ func cargarMensaje(conn net.Conn) {
 	closeCh <- conn
 }
 
+//Inicia la interface web
+
+func iniciarWebPage() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "index.html")
+	})
+	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
+	http.ListenAndServe(":5556", nil)
+}
+
 func main() {
 	//Aquí se crea el servidor
 	server, err := net.Listen("tcp", ":5555")
+	go iniciarWebPage()
+
 	if err != nil {
 		log.Fatal(err)
 	}
