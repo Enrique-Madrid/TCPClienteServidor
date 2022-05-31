@@ -49,13 +49,14 @@ func cargarMensaje(conn net.Conn) {
 }
 
 //Inicia la interface web
-
 func iniciarWebPage() {
+	//http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
+	//Abre la página web php llamada index.php
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
+		http.ServeFile(w, r, "index.php")
 	})
-	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 	http.ListenAndServe(":5556", nil)
+
 }
 
 func main() {
@@ -86,13 +87,11 @@ func main() {
 		case conn := <-connCh:
 			go cargarMensaje(conn)
 			fmt.Println("Cliente conectado")
-			log.Println(len(conns))
-
 		case msg := <-msgCh:
 			_ = msg
 			println("Archivo enviado con éxito")
 		case conn := <-closeCh:
-			fmt.Println("Un cliente salió")
+			fmt.Println("Se desconectó un cliente")
 			removerConn(conn)
 		}
 	}
@@ -116,6 +115,7 @@ func removerConn(conn net.Conn) {
 		if conns[i] == conn {
 			break
 		}
+
 	}
 	conns = append(conns[i:], conns[:i+1]...)
 }

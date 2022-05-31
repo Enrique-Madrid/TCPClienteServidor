@@ -70,7 +70,7 @@ func main() {
 			os.Exit(0)
 		case "./client":
 			//En dado caso el usuario ingrese ./client, se crea un nuevo canal
-			if comando[1] == "log" {
+			if comando[1] == "log" && comando[2] != "" {
 				canal := comando[2]
 				logCliente(canal, serConn)
 
@@ -101,7 +101,7 @@ func logCliente(canal string, conn net.Conn) {
 			conn.Close()
 			os.Exit(0)
 		case "./client":
-			if comando[1] == "channel" {
+			if comando[1] == "channel" && comando[2] != "" {
 				canalAEnviar := comando[2]
 				fmt.Println("El canal #", canalAEnviar, "se ha seleccionado para recibir paquetes")
 				enviarMensaje(canalAEnviar, conn)
@@ -126,11 +126,11 @@ func enviarMensaje(canal string, conn net.Conn) {
 		conn.Close()
 		os.Exit(0)
 	case "./client":
-		if comando[1] == "send" {
+		if comando[1] == "send" && comando[2] != "" {
 			enviarArchivo(conn, canal, comando[2])
 
 		} else {
-			fmt.Println("./client send <mensaje> \n Envia un mensaje al canal seleccionado")
+			fmt.Println("./client send <archivo>")
 		}
 	default:
 		fmt.Println("Comando no reconocido")
@@ -150,4 +150,5 @@ func enviarArchivo(conn net.Conn, canal, dir string) {
 	metaDatos := nombreArchivo + ":" + canal
 	conn.Write([]byte(metaDatos))
 	conn.Write([]byte(datosArchivo))
+	archivo.Close()
 }
