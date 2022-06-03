@@ -30,9 +30,9 @@
                         <thead>
                             <tr class="bg-primary text-light">
                                 <th>ID</th>                                    
-                                <th>Marca</th>
-                                <th>Modelo</th>
-                                <th>Stock</th>    
+                                <th>Canal</th>
+                                <th>Nombre</th>
+                                <th>Peso</th>    
                             </tr>    
                         </thead>
                         <tbody>
