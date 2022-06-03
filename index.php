@@ -21,7 +21,7 @@
         <div class="container">                
             <div class="row">
                 <div class="col text-right">                        
-                    <h5>Stock Total: <span class="badge badge-success">{{totalPeso}}</span></h5>
+                    <h5>Peso Total: <span class="badge badge-success">{{totalPeso}}</span></h5>
                 </div>    
             </div>                
             <div class="row mt-5">
